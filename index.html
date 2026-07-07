@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Sierra Camp Trails</title>
+<meta name="description" content="Offline hiking maps and GPS trail tracking for Stanford Sierra Camp">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1b4332">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SierraTrails">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<style>
+:root {
+  --green: #1b4332; --green2: #2d6a4f; --accent: #ffd166;
+  --red: #d62828; --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--green); color: #fff;
+  display: flex; flex-direction: column;
+}
+#header {
+  padding: calc(var(--sat) + 8px) 12px 8px;
+  background: var(--green); display: flex; align-items: center; gap: 8px;
+  z-index: 1000; flex: 0 0 auto;
+}
+#header h1 { font-size: 17px; font-weight: 700; flex: 1; }
+.pill {
+  font-size: 11px; padding: 3px 9px; border-radius: 999px;
+  background: rgba(255,255,255,.15); white-space: nowrap;
+}
+.pill.ok { background: #2d6a4f; }
+#banner {
+  display: none; padding: 10px 14px; font-size: 14px; font-weight: 600;
+  z-index: 1000; flex: 0 0 auto; text-align: center;
+}
+#banner.info { display: block; background: var(--green2); }
+#banner.warn {
+  display: block; background: var(--red);
+  animation: flash 1s linear infinite;
+}
+@keyframes flash { 50% { background: #9d0208; } }
+#map { flex: 1 1 auto; background: #cfd8cf; }
+#stats {
+  display: none; gap: 4px; padding: 6px 10px; background: var(--green);
+  z-index: 1000; flex: 0 0 auto; justify-content: space-around;
+}
+#stats.on { display: flex; }
+#stats .stat { text-align: center; flex: 1; }
+#stats .stat b { display: block; font-size: 15px; }
+#stats .stat span { font-size: 10px; opacity: .75; text-transform: uppercase; letter-spacing: .04em; }
+#drawer {
+  background: var(--green); z-index: 1000; flex: 0 0 auto;
+  padding: 8px 0 calc(var(--sab) + 8px);
+}
+#trail-scroll {
+  display: flex; gap: 8px; overflow-x: auto; padding: 0 12px 4px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+#trail-scroll::-webkit-scrollbar { display: none; }
+.trail-card {
+  flex: 0 0 auto; width: 168px; border-radius: 12px; padding: 10px;
+  background: rgba(255,255,255,.09); border: 2px solid transparent; cursor: pointer;
+}
+.trail-card.sel { border-color: var(--accent); background: rgba(255,255,255,.16); }
+.trail-card .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.trail-card h3 { font-size: 13px; line-height: 1.25; margin: 4px 0 4px; }
+.trail-card p { font-size: 11px; opacity: .8; }
+#detail { display: none; padding: 8px 12px 0; }
+#detail.on { display: block; }
+#detail p { font-size: 12px; opacity: .85; margin: 4px 0 8px; line-height: 1.4; }
+.btnrow { display: flex; gap: 8px; }
+button.big {
+  flex: 1; padding: 12px; font-size: 15px; font-weight: 700; border: 0;
+  border-radius: 12px; background: var(--accent); color: #333; cursor: pointer;
+}
+button.big.stop { background: var(--red); color: #fff; }
+button.big.sec { background: rgba(255,255,255,.15); color: #fff; }
+#fabs { position: absolute; right: 10px; bottom: 10px; z-index: 800; display: flex; flex-direction: column; gap: 8px; }
+.fab {
+  width: 44px; height: 44px; border-radius: 50%; border: 0; font-size: 20px;
+  background: #fff; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,.3); cursor: pointer;
+}
+#dl-progress {
+  display: none; font-size: 12px; padding: 6px 12px; background: var(--green2); text-align: center;
+}
+.user-dot { background: #1a73e8; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 6px rgba(0,0,0,.4); }
+#ios-tip {
+  display: none; position: absolute; left: 10px; right: 10px; bottom: 90px; z-index: 2000;
+  background: #fff; color: #333; border-radius: 12px; padding: 14px; font-size: 13px; line-height: 1.5;
+  box-shadow: 0 4px 20px rgba(0,0,0,.4);
+}
+</style>
+</head>
+<body>
+<div id="header">
+  <h1>⛰️ Sierra Camp Trails</h1>
+  <span class="pill" id="net-pill">…</span>
+  <span class="pill" id="maps-pill">maps: —</span>
+</div>
+<div id="banner"></div>
+<div id="dl-progress"></div>
+<div id="map"></div>
+<div id="stats">
+  <div class="stat"><b id="st-done">–</b><span>mi done</span></div>
+  <div class="stat"><b id="st-left">–</b><span>mi left</span></div>
+  <div class="stat"><b id="st-off">–</b><span>from trail</span></div>
+  <div class="stat"><b id="st-acc">–</b><span>gps ±</span></div>
+</div>
+<div id="drawer">
+  <div id="trail-scroll"></div>
+  <div id="detail">
+    <p id="detail-desc"></p>
+    <div class="btnrow">
+      <button class="big" id="btn-track">▶ Start hike</button>
+      <button class="big sec" id="btn-fit">Zoom to trail</button>
+    </div>
+  </div>
+</div>
+<div id="fabs" style="bottom:auto; top:calc(var(--sat) + 56px);">
+  <button class="fab" id="fab-locate" title="My location">📍</button>
+  <button class="fab" id="fab-dl" title="Download offline maps">⬇️</button>
+</div>
+<div id="ios-tip">
+  <b>Install this app:</b> tap the Share button <span style="font-size:16px">&#x2BAD;</span> in Safari,
+  then <b>“Add to Home Screen”</b>. The maps and trails will work with no cell signal.
+  <div style="text-align:right; margin-top:8px"><button class="big" style="flex:0; padding:8px 16px" onclick="this.closest('#ios-tip').style.display='none'">Got it</button></div>
+</div>
+<script src="vendor/leaflet.js"></script>
+<script src="data/trails.js"></script>
+<script src="data/tile-manifest.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
