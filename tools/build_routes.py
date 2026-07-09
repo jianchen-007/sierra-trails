@@ -114,9 +114,17 @@ ROUTES = [
     ("mid-tallac", "Mt. Tallac via Mid-Tallac Trail",
      [CAMP, (38.8869, -120.1018), (38.90597, -120.09902)], "#9a6324", "Very strenuous",
      "The unmarked Mid-Tallac route from the Lily Lake parking lot - climbs the southern scree side of Cathedral Ridge straight to the summit."),
-    ("angora-lakes", "Angora Lakes (Church Trail)",
-     [CAMP, (38.86266, -120.06788)], "#911eb4", "Short & steep",
-     "Steep climb from the Fire House up the Church Trail to the Angora Lakes parking lot, then an easy walk to Angora Lakes Resort - famous lemonade."),
+    ("angora-lakes", "Angora Lakes Loop (Church & Clark Trails)",
+     [CAMP,
+      (38.87962, -120.0710),   # Church Trail head at the Fire House
+      (38.87136, -120.06325),  # Angora Lakes parking lot
+      (38.86266, -120.06788),  # Angora Lakes Resort (upper lake) - lemonade stop
+      (38.87136, -120.06325),  # back to the parking lot
+      (38.8777511, -120.0583661),  # on Angora Ridge Road (not the parallel ridge trail)
+      (38.88219, -120.05466),  # Fire Lookout (Clark Trail junction on Angora Ridge Rd)
+      (38.87889, -120.06363),  # bottom of Clark Trail near Fallen Leaf Marina
+      CAMP], "#911eb4", "Moderate",
+     "Steep Church Trail from the Fire House to the Angora Lakes parking lot, on to the resort for fresh lemonade, then back via Angora Ridge Road to the Fire Lookout and down the Clark Trail to Fallen Leaf Marina and camp."),
     ("mt-tallac", "Mt. Tallac via Cathedral Lake",
      [CAMP, (38.89374, -120.08179), (38.90597, -120.09902)], "#008080", "Very strenuous",
      "Scales the western shore of Fallen Leaf Lake past Floating Island Lake and Cathedral Lake to the 9,735 ft summit of Mt. Tallac."),

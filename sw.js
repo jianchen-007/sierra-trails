@@ -1,7 +1,7 @@
 /* Sierra Camp Trails service worker — full offline support */
 'use strict';
 
-const SHELL_CACHE = 'sierra-shell-v1';
+const SHELL_CACHE = 'sierra-shell-v4';
 const TILE_CACHE = 'sierra-tiles-v1';
 
 const SHELL = [
@@ -20,7 +20,11 @@ const SHELL = [
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(SHELL_CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())
+    caches.open(SHELL_CACHE)
+      // cache:'reload' bypasses the HTTP cache so a new SW version always
+      // installs fresh copies of the shell, never stale heuristically-cached ones
+      .then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' }))))
+      .then(() => self.skipWaiting())
   );
 });
 

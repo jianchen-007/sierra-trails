@@ -58,8 +58,11 @@ function selectTrail(id) {
   Object.entries(layers).forEach(([k, l]) =>
     l.setStyle({ weight: k === id ? 7 : 3, opacity: k === id ? 1 : 0.5 }));
   document.getElementById('detail').classList.add('on');
+  const isLoop = routePts.length > 1 &&
+    routePts[0][0] === routePts[routePts.length - 1][0] &&
+    routePts[0][1] === routePts[routePts.length - 1][1];
   document.getElementById('detail-desc').textContent =
-    `${selected.properties.miles} mi one-way · ${selected.properties.difficulty}. ${selected.properties.desc}`;
+    `${selected.properties.miles} mi ${isLoop ? 'loop' : 'one-way'} · ${selected.properties.difficulty}. ${selected.properties.desc}`;
   document.getElementById('card-' + id).scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   if (!tracking) map.fitBounds(layers[id].getBounds(), { padding: [30, 30] });
 }
@@ -188,10 +191,10 @@ function onGpsError(err) {
 }
 
 async function startTracking() {
+  if (tracking) return;
   if (!selected) { setBanner('info', 'Pick a trail below first'); return; }
   if (!('geolocation' in navigator)) { setBanner('warn', 'No GPS on this device/browser.'); return; }
-  try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); } catch (e) {}
-  try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (e) {}
+  // flip state synchronously so a double-tap can't start two sessions
   tracking = true; offCount = 0; warned = false;
   btnTrack.textContent = '■ End hike';
   btnTrack.classList.add('stop');
@@ -199,6 +202,9 @@ async function startTracking() {
   setBanner('info', 'Acquiring GPS…');
   watchId = navigator.geolocation.watchPosition(onFix, onGpsError,
     { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
+  try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); } catch (e) {}
+  try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (e) {}
+  if (!tracking) { try { wakeLock?.release(); } catch (e) {} } // ended while awaiting
 }
 
 function stopTracking() {
