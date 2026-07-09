@@ -125,6 +125,12 @@ ROUTES = [
       (38.87889, -120.06363),  # bottom of Clark Trail near Fallen Leaf Marina
       CAMP], "#911eb4", "Moderate",
      "Steep Church Trail from the Fire House to the Angora Lakes parking lot, on to the resort for fresh lemonade, then back via Angora Ridge Road to the Fire Lookout and down the Clark Trail to Fallen Leaf Marina and camp."),
+    ("angora-out-back", "Angora Lakes out & back (Church Trail)",
+     [CAMP,
+      (38.87962, -120.0710),   # Church Trail head at the Fire House
+      (38.87136, -120.06325),  # Angora Lakes parking lot
+      (38.86266, -120.06788)], "#e377c2", "Short & steep",
+     "The direct option: Church Trail from the Fire House to the Angora Lakes parking lot and on to the resort for lemonade, then straight back down the way you came."),
     ("mt-tallac", "Mt. Tallac via Cathedral Lake",
      [CAMP, (38.89374, -120.08179), (38.90597, -120.09902)], "#008080", "Very strenuous",
      "Scales the western shore of Fallen Leaf Lake past Floating Island Lake and Cathedral Lake to the 9,735 ft summit of Mt. Tallac."),
