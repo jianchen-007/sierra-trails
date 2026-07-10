@@ -137,7 +137,7 @@ ROUTES = [
       (38.87962, -120.0710),   # Church Trail head at the Fire House
       (38.87136, -120.06325),  # Angora Lakes parking lot
       (38.86266, -120.06788)], "#e377c2", "Short & steep",
-     "The direct option: Church Trail from the Fire House to the Angora Lakes parking lot and on to the resort for lemonade, then straight back down the way you came."),
+     "The direct option: Church Trail from the Fire House up to the Angora Lakes parking lot and on to the resort for lemonade, then straight back down the way you came. ⚠️ The initial climb is very steep — hiking poles are recommended if you plan to descend this trail; the suggested return is the Angora Lakes Loop via the Lily Lake Trail."),
     ("mt-tallac", "Mt. Tallac via Cathedral Lake",
      [CAMP, (38.89374, -120.08179), (38.90597, -120.09902)], "#008080", "Very strenuous",
      "Scales the western shore of Fallen Leaf Lake past Floating Island Lake and Cathedral Lake to the 9,735 ft summit of Mt. Tallac."),
