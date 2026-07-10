@@ -1,7 +1,7 @@
 /* Sierra Camp Trails service worker — full offline support */
 'use strict';
 
-const SHELL_CACHE = 'sierra-shell-v8';
+const SHELL_CACHE = 'sierra-shell-v9';
 const TILE_CACHE = 'sierra-tiles-v1';
 
 const SHELL = [
@@ -13,6 +13,7 @@ const SHELL = [
   'vendor/leaflet.css',
   'data/trails.js',
   'data/tile-manifest.js',
+  'data/photos.js',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/apple-touch-icon.png',
@@ -42,8 +43,8 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
 
-  // map tiles: cache-first in the tile cache, fill from network when online
-  if (url.pathname.includes('/tiles/')) {
+  // map tiles + photos: cache-first in the tile cache, fill from network when online
+  if (url.pathname.includes('/tiles/') || url.pathname.includes('/photos/')) {
     e.respondWith((async () => {
       const cache = await caches.open(TILE_CACHE);
       const hit = await cache.match(e.request);

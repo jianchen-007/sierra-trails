@@ -98,6 +98,22 @@ button.big.sec { background: rgba(255,255,255,.15); color: #fff; }
   display: none; font-size: 12px; padding: 6px 12px; background: var(--green2); text-align: center;
 }
 .user-dot { background: #1a73e8; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 6px rgba(0,0,0,.4); }
+.photo-pin {
+  width: 44px; height: 44px; border-radius: 8px; border: 2px solid #fff;
+  box-shadow: 0 1px 6px rgba(0,0,0,.45); object-fit: cover; cursor: pointer;
+}
+#lightbox {
+  display: none; position: fixed; inset: 0; z-index: 3000;
+  background: rgba(0,0,0,.88); flex-direction: column;
+  align-items: center; justify-content: center; cursor: pointer;
+}
+#lightbox img {
+  max-width: 96vw; max-height: 84vh; border-radius: 8px;
+  box-shadow: 0 4px 30px rgba(0,0,0,.6);
+}
+#lightbox figcaption {
+  color: #fff; font-size: 14px; margin-top: 10px; text-align: center; padding: 0 16px;
+}
 #ios-tip {
   display: none; position: absolute; left: 10px; right: 10px; bottom: 90px; z-index: 2000;
   background: #fff; color: #333; border-radius: 12px; padding: 14px; font-size: 13px; line-height: 1.5;
@@ -142,9 +158,11 @@ button.big.sec { background: rgba(255,255,255,.15); color: #fff; }
   then <b>“Add to Home Screen”</b>. The maps and trails will work with no cell signal.
   <div style="text-align:right; margin-top:8px"><button class="big" style="flex:0; padding:8px 16px" onclick="this.closest('#ios-tip').style.display='none'">Got it</button></div>
 </div>
+<figure id="lightbox"><img alt=""><figcaption></figcaption></figure>
 <script src="vendor/leaflet.js"></script>
 <script src="data/trails.js"></script>
 <script src="data/tile-manifest.js"></script>
+<script src="data/photos.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

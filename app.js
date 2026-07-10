@@ -110,6 +110,23 @@ document.getElementById('btn-fit').onclick = () => {
   if (selected) map.fitBounds(layers[selected.properties.id].getBounds(), { padding: [30, 30] });
 };
 
+/* ---------- geotagged photos ---------- */
+const lightbox = document.getElementById('lightbox');
+PHOTOS.forEach(ph => {
+  const icon = L.divIcon({
+    className: '',
+    html: `<img class="photo-pin" src="photos/thumb/${ph.f}.jpg" alt="">`,
+    iconSize: [44, 44], iconAnchor: [22, 22],
+  });
+  L.marker([ph.lat, ph.lon], { icon, zIndexOffset: 500 }).addTo(map)
+    .on('click', () => {
+      lightbox.querySelector('img').src = `photos/full/${ph.f}.jpg`;
+      lightbox.querySelector('figcaption').textContent = `${ph.cap} · ${ph.date}`;
+      lightbox.style.display = 'flex';
+    });
+});
+lightbox.onclick = () => { lightbox.style.display = 'none'; lightbox.querySelector('img').src = ''; };
+
 /* ---------- geometry helpers (meters, equirectangular) ---------- */
 const R = 6371000;
 function meters(a, b) { // a,b = [lat,lon]
@@ -391,6 +408,9 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
+// everything the map needs offline: tiles + photo images
+const OFFLINE_FILES = TILE_MANIFEST.concat(PHOTO_FILES);
+
 async function tilesCached() {
   if (!('caches' in window)) return 0;
   const cache = await caches.open(TILE_CACHE);
@@ -399,8 +419,8 @@ async function tilesCached() {
 
 async function updMapsPill() {
   const n = await tilesCached().catch(() => 0);
-  const done = n >= TILE_MANIFEST.length;
-  mapsPill.textContent = done ? 'maps ✓' : `maps: ${n}/${TILE_MANIFEST.length}`;
+  const done = n >= OFFLINE_FILES.length;
+  mapsPill.textContent = done ? 'maps ✓' : `maps: ${n}/${OFFLINE_FILES.length}`;
   mapsPill.classList.toggle('ok', done);
   return done;
 }
@@ -411,14 +431,14 @@ async function downloadTiles() {
   const cache = await caches.open(TILE_CACHE);
   const have = new Set((await cache.keys()).map(r => new URL(r.url).pathname));
   const base = new URL('.', location.href).pathname;
-  const todo = TILE_MANIFEST.filter(t => !have.has(base + t));
-  let n = TILE_MANIFEST.length - todo.length, fail = 0;
+  const todo = OFFLINE_FILES.filter(t => !have.has(base + t));
+  let n = OFFLINE_FILES.length - todo.length, fail = 0;
   const CHUNK = 8;
   for (let i = 0; i < todo.length; i += CHUNK) {
     await Promise.all(todo.slice(i, i + CHUNK).map(async t => {
       try { await cache.add(t); n++; } catch (e) { fail++; }
     }));
-    prog.textContent = `Downloading offline maps… ${n}/${TILE_MANIFEST.length}`;
+    prog.textContent = `Downloading offline maps… ${n}/${OFFLINE_FILES.length}`;
   }
   prog.textContent = fail ? `Map download incomplete (${fail} tiles failed) — tap ⬇️ to retry`
     : 'Offline maps saved ✓ — this app now works with no signal';
