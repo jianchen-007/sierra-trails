@@ -8,7 +8,8 @@ routes, and GPS tracking run entirely on the phone once installed.
 
 | Trail | One-way | Difficulty |
 |---|---|---|
-| Angora Lakes (Church Trail) | 2.1 mi | Short & steep |
+| Angora Lakes out & back (Church Trail) | 2.1 mi | Short & steep |
+| Angora Lakes Loop (Church & Lily Lake Trails) | 5.7 mi | Moderate |
 | Grass Lake via Glen Alpine | 3.5 mi | Moderate |
 | Mt. Tallac via Cathedral Lake | 3.7 mi | Very strenuous |
 | Mt. Tallac via Mid-Tallac Trail | 4.3 mi | Very strenuous |

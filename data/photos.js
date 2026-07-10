@@ -10,5 +10,11 @@ const PHOTOS = [
     cap: 'Pond along the Grass Lake Trail' },
   { f: 'IMG_1447', lat: 38.875450, lon: -120.097017, date: '2026-07-08',
     cap: 'Giant Jenga at Glen Alpine Springs' },
+  { f: 'IMG_1478', lat: 38.874353, lon: -120.070106, date: '2026-07-09',
+    cap: 'Fallen Leaf Lake & Tahoe panorama from the Lily Lake Trail' },
+  { f: 'IMG_1482', lat: 38.874061, lon: -120.077514, date: '2026-07-09',
+    cap: 'Talus crossing on the Lily Lake Trail below Angora ridge' },
+  { f: 'IMG_1483', lat: 38.874472, lon: -120.078619, date: '2026-07-09',
+    cap: 'Lily Lake Trail junction — ¼ mi to the Glen Alpine parking lot' },
 ];
 const PHOTO_FILES = PHOTOS.flatMap(p => [`photos/thumb/${p.f}.jpg`, `photos/full/${p.f}.jpg`]);

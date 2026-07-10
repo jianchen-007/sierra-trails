@@ -121,17 +121,17 @@ ROUTES = [
     ("mid-tallac", "Mt. Tallac via Mid-Tallac Trail",
      [CAMP, *GA_ROAD, (38.8869, -120.1018), (38.90597, -120.09902)], "#9a6324", "Very strenuous",
      "The unmarked Mid-Tallac route from the Lily Lake parking lot - climbs the southern scree side of Cathedral Ridge straight to the summit."),
-    ("angora-lakes", "Angora Lakes Loop (Church & Clark Trails)",
+    ("angora-lakes", "Angora Lakes Loop (Church & Lily Lake Trails)",
      [CAMP,
       (38.87962, -120.0710),   # Church Trail head at the Fire House
       (38.87136, -120.06325),  # Angora Lakes parking lot
       (38.86266, -120.06788),  # Angora Lakes Resort (upper lake) - lemonade stop
-      (38.87136, -120.06325),  # back to the parking lot
-      (38.8777511, -120.0583661),  # on Angora Ridge Road (not the parallel ridge trail)
-      (38.88219, -120.05466),  # Fire Lookout (Clark Trail junction on Angora Ridge Rd)
-      (38.87889, -120.06363),  # bottom of Clark Trail near Fallen Leaf Marina
+      (38.873409, -120.065077),  # Lily Lake Trail east trailhead (off Angora road)
+      (38.874306, -120.073048),  # mid-descent on the Lily Lake Trail (talus field)
+      (38.876535, -120.079363),  # Lily Lake Trail west end at Lily Lake
+      GA_ROAD[2], GA_ROAD[1], GA_ROAD[0],  # Glen Alpine Road back
       CAMP], "#911eb4", "Moderate",
-     "Steep Church Trail from the Fire House to the Angora Lakes parking lot, on to the resort for fresh lemonade, then back via Angora Ridge Road to the Fire Lookout and down the Clark Trail to Fallen Leaf Marina and camp."),
+     "Steep Church Trail from the Fire House to the Angora Lakes parking lot, on to the resort for fresh lemonade, then the Lily Lake Trail down the talus slopes (big Fallen Leaf Lake views) to Lily Lake and Glen Alpine Road back to camp."),
     ("angora-out-back", "Angora Lakes out & back (Church Trail)",
      [CAMP,
       (38.87962, -120.0710),   # Church Trail head at the Fire House
