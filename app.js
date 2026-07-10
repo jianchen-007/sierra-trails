@@ -13,9 +13,10 @@ const map = L.map('map', { zoomControl: false, attributionControl: false })
   .setView(CAMP, 13);
 L.control.attribution({ prefix: false })
   .addAttribution('USGS Topo | Trails © OpenStreetMap contributors').addTo(map);
+L.control.zoom({ position: 'topleft' }).addTo(map);
 
 L.tileLayer('tiles/{z}/{x}/{y}.jpg', {
-  minZoom: 11, maxZoom: 17, maxNativeZoom: 15,
+  minZoom: 10, maxZoom: 18, maxNativeZoom: 15,
   bounds: [[38.845, -120.175], [38.945, -120.035]],
 }).addTo(map);
 
@@ -35,6 +36,11 @@ TRAILS.features.forEach(f => {
   line.on('click', () => selectTrail(f.properties.id));
   layers[f.properties.id] = line;
 });
+
+// initial view: the whole trail network
+const allBounds = L.latLngBounds([]);
+Object.values(layers).forEach(l => allBounds.extend(l.getBounds()));
+map.fitBounds(allBounds, { padding: [20, 20] });
 
 const scroll = document.getElementById('trail-scroll');
 TRAILS.features.forEach(f => {
@@ -113,6 +119,19 @@ let tracking = false, watchId = null, routePts = null, routeCum = null;
 let userMarker = null, accCircle = null, offCount = 0, warned = false, lastBeep = 0;
 let wakeLock = null, audioCtx = null;
 
+// follow mode: the map tracks your position until you pan away yourself;
+// zooming never breaks follow — you choose the zoom level, we keep the center
+let follow = true;
+const fabRecenter = document.getElementById('fab-recenter');
+map.on('dragstart', () => {
+  if (tracking) { follow = false; fabRecenter.style.display = 'block'; }
+});
+fabRecenter.onclick = () => {
+  follow = true;
+  fabRecenter.style.display = 'none';
+  if (userMarker) map.panTo(userMarker.getLatLng());
+};
+
 const banner = document.getElementById('banner');
 const btnTrack = document.getElementById('btn-track');
 
@@ -142,11 +161,11 @@ function onFix(pos) {
       icon: L.divIcon({ className: 'user-dot', iconSize: [18, 18] }), zIndexOffset: 1000,
     }).addTo(map);
     accCircle = L.circle(p, { radius: acc, weight: 1, color: '#1a73e8', fillOpacity: 0.12 }).addTo(map);
-    map.setView(p, Math.max(map.getZoom(), 15));
+    if (!tracking || follow) map.setView(p, Math.max(map.getZoom(), 14));
   } else {
     userMarker.setLatLng(p);
     accCircle.setLatLng(p).setRadius(acc);
-    if (tracking) map.panTo(p, { animate: true });
+    if (tracking && follow) map.panTo(p, { animate: true });
   }
   document.getElementById('st-acc').textContent = Math.round(acc) + 'm';
   if (!tracking || !routePts) return;
@@ -196,6 +215,7 @@ async function startTracking() {
   if (!('geolocation' in navigator)) { setBanner('warn', 'No GPS on this device/browser.'); return; }
   // flip state synchronously so a double-tap can't start two sessions
   tracking = true; offCount = 0; warned = false;
+  follow = true; fabRecenter.style.display = 'none';
   btnTrack.textContent = '■ End hike';
   btnTrack.classList.add('stop');
   document.getElementById('stats').classList.add('on');
@@ -215,6 +235,7 @@ function stopTracking() {
   btnTrack.textContent = '▶ Start hike';
   btnTrack.classList.remove('stop');
   document.getElementById('stats').classList.remove('on');
+  fabRecenter.style.display = 'none';
   setBanner('', '');
 }
 
