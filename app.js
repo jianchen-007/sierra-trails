@@ -31,8 +31,17 @@ let selected = null; // feature
 
 const scroll = document.getElementById('trail-scroll');
 
+// "~2¾ h" style formatting for estimated hike times (quarter-hour steps)
+function fmtHours(h) {
+  if (!h) return '';
+  const q = Math.round(h * 4);
+  return `~${Math.floor(q / 4) || ''}${['', '¼', '½', '¾'][q % 4]} h`;
+}
+
 function addTrailUI(f, custom) {
   const p = f.properties;
+  // recorded trails have no elevation data: estimate from the user's ~1.9 mph pace
+  const hours = p.hours || Math.round(p.miles / 1.9 * 4) / 4;
   const line = L.geoJSON(f, {
     style: { color: p.color, weight: 4, opacity: 0.85, dashArray: custom ? '6 6' : null },
   }).addTo(map);
@@ -43,7 +52,7 @@ function addTrailUI(f, custom) {
   card.className = 'trail-card';
   card.id = 'card-' + p.id;
   card.innerHTML = `<span class="dot" style="background:${p.color}"></span>` +
-    `<span style="font-size:11px;opacity:.8">${p.miles} mi · ${p.difficulty}</span>` +
+    `<span style="font-size:11px;opacity:.8">${p.miles} mi · ${fmtHours(hours)} · ${p.difficulty}</span>` +
     `<h3>${p.name}</h3>` +
     (custom ? `<button class="card-del" title="Delete this trail">✕</button>` : '');
   card.onclick = () => selectTrail(p.id);
@@ -100,8 +109,11 @@ function selectTrail(id) {
   const isLoop = routePts.length > 1 &&
     routePts[0][0] === routePts[routePts.length - 1][0] &&
     routePts[0][1] === routePts[routePts.length - 1][1];
+  const sp = selected.properties;
+  const est = fmtHours(sp.hours || Math.round(sp.miles / 1.9 * 4) / 4);
+  const climb = sp.ascent ? ` · +${sp.ascent.toLocaleString()} ft` : '';
   document.getElementById('detail-desc').textContent =
-    `${selected.properties.miles} mi ${isLoop ? 'loop' : 'one-way'} · ${selected.properties.difficulty}. ${selected.properties.desc}`;
+    `${sp.miles} mi ${isLoop ? 'loop' : 'one-way'} · ${est}${climb} · ${sp.difficulty}. ${sp.desc}`;
   document.getElementById('card-' + id).scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   if (!tracking) map.fitBounds(layers[id].getBounds(), { padding: [30, 30] });
 }
