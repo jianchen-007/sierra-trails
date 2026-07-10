@@ -1,7 +1,7 @@
 /* Sierra Camp Trails service worker — full offline support */
 'use strict';
 
-const SHELL_CACHE = 'sierra-shell-v7';
+const SHELL_CACHE = 'sierra-shell-v8';
 const TILE_CACHE = 'sierra-tiles-v1';
 
 const SHELL = [

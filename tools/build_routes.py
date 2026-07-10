@@ -75,6 +75,13 @@ ga_ends = [key(ga_way["geometry"][0]["lat"], ga_way["geometry"][0]["lon"]),
            key(ga_way["geometry"][-1]["lat"], ga_way["geometry"][-1]["lon"])]
 GA_JCT = min(ga_ends, key=lambda p: p[1])  # westernmost endpoint
 GA_SPRINGS = (38.8758151, -120.0971044)    # Glen Alpine Springs, forces canyon route
+# walk Glen Alpine ROAD from the Fire House to Lily Lake (the narrow
+# Stanford Hill / Waterhouse / Jeffrey Lane tract paths are rarely used)
+GA_ROAD = [
+    (38.8796499, -120.0724339),  # road start at the Fire House
+    (38.8782885, -120.0754890),  # mid-road
+    (38.8767872, -120.0787586),  # near Lily Lake trailhead
+]
 print("Glen Alpine west junction:", GA_JCT)
 
 dijkstra_cache = {}
@@ -100,19 +107,19 @@ def route_via(points):
 ROUTES = [
     # id, name, waypoints (camp first), color, difficulty, blurb
     ("grass-lake", "Grass Lake via Glen Alpine",
-     [CAMP, (38.87259, -120.11326)], "#e6194b", "Moderate",
+     [CAMP, *GA_ROAD, (38.87259, -120.11326)], "#e6194b", "Moderate",
      "Follows Fallen Leaf Road past Lily Lake, then the Glen Alpine Trail to the Grass Lake turnoff. Great waterfall views at Glen Alpine Falls."),
     ("susie-lake", "Susie Lake via Glen Alpine & PCT",
-     [CAMP, GA_SPRINGS, GA_JCT, (38.8817, -120.12734)], "#f58231", "Strenuous",
+     [CAMP, *GA_ROAD, GA_SPRINGS, GA_JCT, (38.8817, -120.12734)], "#f58231", "Strenuous",
      "Glen Alpine Trail to the Pacific Crest Trail junction, then on to rocky-shored Susie Lake in Desolation Wilderness."),
     ("gilmore-lake", "Gilmore Lake via Glen Alpine",
-     [CAMP, GA_SPRINGS, GA_JCT, (38.89583, -120.11593)], "#3cb44b", "Strenuous",
+     [CAMP, *GA_ROAD, GA_SPRINGS, GA_JCT, (38.89583, -120.11593)], "#3cb44b", "Strenuous",
      "Glen Alpine Trail then the Gilmore Lake spur - the classic route toward Mt. Tallac from the south."),
     ("lake-aloha", "Lake Aloha via Heather Lake",
-     [CAMP, GA_SPRINGS, GA_JCT, (38.8817, -120.12734), (38.87593, -120.13756), (38.8672, -120.1420)], "#4363d8", "Strenuous",
+     [CAMP, *GA_ROAD, GA_SPRINGS, GA_JCT, (38.8817, -120.12734), (38.87593, -120.13756), (38.8672, -120.1420)], "#4363d8", "Strenuous",
      "The long haul: Glen Alpine Trail to the PCT, past Susie and Heather Lakes to the granite shores of Lake Aloha."),
     ("mid-tallac", "Mt. Tallac via Mid-Tallac Trail",
-     [CAMP, (38.8869, -120.1018), (38.90597, -120.09902)], "#9a6324", "Very strenuous",
+     [CAMP, *GA_ROAD, (38.8869, -120.1018), (38.90597, -120.09902)], "#9a6324", "Very strenuous",
      "The unmarked Mid-Tallac route from the Lily Lake parking lot - climbs the southern scree side of Cathedral Ridge straight to the summit."),
     ("angora-lakes", "Angora Lakes Loop (Church & Clark Trails)",
      [CAMP,
