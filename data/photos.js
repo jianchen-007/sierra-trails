@@ -28,6 +28,8 @@ const PHOTOS = [
     cap: 'Fallen Leaf Lake from the top of the Lily Lake Trail descent' },
   { f: 'IMG_1478', lat: 38.874353, lon: -120.070106, date: '2026-07-09',
     cap: 'Fallen Leaf Lake & Tahoe panorama from the Lily Lake Trail' },
+  { f: 'IMG_1480', lat: 38.874564, lon: -120.070403, date: '2026-07-09',
+    cap: 'Fallen Leaf Lake and Lake Tahoe — the best view on the Lily Lake Trail' },
   { f: 'IMG_1482', lat: 38.874061, lon: -120.077514, date: '2026-07-09',
     cap: 'Talus crossing on the Lily Lake Trail below Angora ridge' },
   { f: 'IMG_1483', lat: 38.874472, lon: -120.078619, date: '2026-07-09',
