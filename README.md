@@ -6,16 +6,20 @@ routes, and GPS tracking run entirely on the phone once installed.
 
 ## Trails (from whatzappening.com/recreation, geometry from OpenStreetMap)
 
-| Trail | One-way | Difficulty |
-|---|---|---|
-| Angora Lakes out & back (Church Trail) | 2.1 mi | Short & steep |
-| Angora Lakes Loop (Church & Lily Lake Trails) | 5.7 mi | Moderate |
-| Grass Lake via Glen Alpine | 3.5 mi | Moderate |
-| Mt. Tallac via Cathedral Lake | 3.7 mi | Very strenuous |
-| Mt. Tallac via Mid-Tallac Trail | 4.3 mi | Very strenuous |
-| Gilmore Lake via Glen Alpine | 5.0 mi | Strenuous |
-| Susie Lake via Glen Alpine & PCT | 5.1 mi | Strenuous |
-| Lake Aloha via Heather Lake | 7.6 mi | Strenuous |
+| Trail | Total distance | Climb | Est. time |
+|---|---|---|---|
+| Angora Lakes out & back (Church Trail) | 4.2 mi | +1,150 ft | ~2½ h |
+| Angora Lakes Loop (Church & Lily Lake Trails) | 5.7 mi | +1,150 ft | ~3 h |
+| Grass Lake via Glen Alpine | 7.2 mi | +850 ft | ~3 h |
+| Mt. Tallac via Cathedral Lake | 7.4 mi | +3,350 ft | ~5 h |
+| Mt. Tallac via Mid-Tallac Trail | 9.2 mi | +3,450 ft | ~5¾ h |
+| Gilmore Lake via Glen Alpine | 10.2 mi | +1,950 ft | ~5¼ h |
+| Susie Lake via Glen Alpine & PCT | 10.4 mi | +1,900 ft | ~5½ h |
+| Lake Aloha via Heather Lake | 15.4 mi | +2,350 ft | ~7¾ h |
+
+Distances are full round trips (or loops). Times use Naismith's rule
+calibrated against two measured hikes (Angora loop 3 h; Grass Lake trail
+to the beaver pond and back 2.5 h).
 
 All routes start at the camp itself (38.88325, -120.07233).
 

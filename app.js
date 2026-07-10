@@ -112,8 +112,9 @@ function selectTrail(id) {
   const sp = selected.properties;
   const est = fmtHours(sp.hours || Math.round(sp.miles / 1.9 * 4) / 4);
   const climb = sp.ascent ? ` · +${sp.ascent.toLocaleString()} ft` : '';
+  const kind = sp.custom ? 'as recorded' : isLoop ? 'loop' : 'round trip';
   document.getElementById('detail-desc').textContent =
-    `${sp.miles} mi ${isLoop ? 'loop' : 'one-way'} · ${est}${climb} · ${sp.difficulty}. ${sp.desc}`;
+    `${sp.miles} mi ${kind} · ${est}${climb} · ${sp.difficulty}. ${sp.desc}`;
   document.getElementById('card-' + id).scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   if (!tracking) map.fitBounds(layers[id].getBounds(), { padding: [30, 30] });
 }

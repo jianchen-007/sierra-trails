@@ -56,16 +56,32 @@ def ascent_m(elevs, threshold=5.0):
             ref = e
     return total
 
+# Measured overrides (user data beats the model):
+# - angora-lakes: hiked 2026-07-09 in 3.0 h
+# - grass-lake: camp->pond->camp (2.76 mi of 3.61 one-way) took 2.5 h on
+#   2026-07-08; extrapolating that pace over the full route gives ~3.0 h
+OVERRIDES = {"angora-lakes": 3.0, "grass-lake": 3.0}
+
 fc = json.load(open(f"{DATA}/trails.geojson"))
 for f in fc["features"]:
     p = f["properties"]
-    pts = sample(f["geometry"]["coordinates"])
+    coords = f["geometry"]["coordinates"]
+    is_loop = coords[0] == coords[-1]
+    pts = sample(coords)
     elevs = elevations(pts)
     up_ft = ascent_m(elevs) * 3.28084
+    net_ft = (elevs[-1] - elevs[0]) * 3.28084
+    if not is_loop:
+        # out-and-back: full round trip. Return climbs whatever the way out descended.
+        if not p.get("roundtrip"):  # don't double twice on re-runs
+            p["miles"] = round(p["miles"] * 2, 1)
+        up_ft = 2 * up_ft - net_ft
     hours = (p["miles"] / BASE_MPH + up_ft / FT_PER_HOUR) * CALIBRATION
     p["ascent"] = int(round(up_ft / 50) * 50)
-    p["hours"] = round(hours * 4) / 4
-    print(f"{p['name']}: {p['miles']} mi, +{p['ascent']} ft -> ~{p['hours']} h  ({len(pts)} samples)")
+    p["hours"] = OVERRIDES.get(p["id"], round(hours * 4) / 4)
+    p["roundtrip"] = not is_loop
+    print(f"{p['name']}: {p['miles']} mi {'loop' if is_loop else 'round trip'}, "
+          f"+{p['ascent']} ft -> ~{p['hours']} h  ({len(pts)} samples)")
 
 json.dump(fc, open(f"{DATA}/trails.geojson", "w"))
 with open(f"{DATA}/trails.js", "w") as f:

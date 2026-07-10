@@ -1,5 +1,11 @@
 // Geotagged photos shown as thumbnails on the map (GPS from EXIF)
 const PHOTOS = [
+  { f: 'IMG_1431', lat: 38.877114, lon: -120.080597, date: '2026-07-08',
+    cap: 'Desolation Wilderness map board at the Lily Lake trailhead' },
+  { f: 'IMG_1432', lat: 38.876953, lon: -120.088822, date: '2026-07-08',
+    cap: 'Modjeska Falls on Glen Alpine Creek' },
+  { f: 'IMG_1435', lat: 38.877764, lon: -120.094428, date: '2026-07-08',
+    cap: 'Glen Alpine canyon panorama' },
   { f: 'IMG_1440', lat: 38.875339, lon: -120.097267, date: '2026-07-08',
     cap: 'Glen Alpine Springs entrance gate' },
   { f: 'IMG_1441', lat: 38.875317, lon: -120.097244, date: '2026-07-08',
