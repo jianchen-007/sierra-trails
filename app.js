@@ -310,6 +310,61 @@ document.getElementById('fab-locate').onclick = () => {
     onGpsError, { enableHighAccuracy: true, timeout: 15000 });
 };
 
+/* ---------- tap-for-time: round-trip estimate to any map point ---------- */
+const fabTime = document.getElementById('fab-time');
+let pickMode = false;
+const CALIBRATION = 1.22; // measured pace vs Naismith (Angora loop datum)
+
+function estimateTo(latlng) {
+  // nearest precomputed trail node (equirectangular, early-out scan)
+  const cosLat = Math.cos(latlng.lat * Math.PI / 180), k = Math.PI / 180 * 6371000;
+  let best = null, bestD = Infinity;
+  for (const n of TIMEFIELD.nodes) {
+    const dx = (n[1] - latlng.lng) * cosLat * k, dy = (n[0] - latlng.lat) * k;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < bestD) { bestD = d2; best = n; }
+  }
+  const snapM = Math.sqrt(bestD);
+  if (snapM > 2000) return { err: 'Too far from the trail network around camp.' };
+  const [nlat, nlon, distM, climbOut, elevFt] = best;
+  const miles = 2 * distM / 1609.34;
+  const climbBack = Math.max(0, climbOut - (elevFt - TIMEFIELD.campElev));
+  let hours = (miles / 3 + (climbOut + climbBack) / 2000) * CALIBRATION;
+  let note = '';
+  if (snapM > 120) {
+    hours += (2 * snapM / 1609.34) / 1.5; // off-trail walking is slow
+    note = `<br><small>⚠️ ${Math.round(snapM)} m off the nearest trail — rough estimate</small>`;
+  }
+  return { hours, miles, climb: climbOut, snap: [nlat, nlon], note };
+}
+
+function fmtDetailed(h) {
+  const H = Math.floor(h), m = Math.round((h - H) * 60 / 5) * 5;
+  return H ? `${H} h ${m ? m + ' min' : ''}` : `${m} min`;
+}
+
+map.on('click', e => {
+  if (!pickMode) return;
+  pickMode = false;
+  fabTime.style.background = '#fff';
+  setBanner('', '');
+  const r = estimateTo(e.latlng);
+  if (r.err) { setBanner('info', r.err); setTimeout(() => setBanner('', ''), 3000); return; }
+  L.popup({ maxWidth: 240 })
+    .setLatLng(e.latlng)
+    .setContent(
+      `<b>Round trip from camp</b><br>` +
+      `≈ ${fmtDetailed(r.hours)} · ${r.miles.toFixed(1)} mi · +${Math.round(r.climb).toLocaleString()} ft` +
+      `<br><small>via the trail network, at your pace</small>` + r.note)
+    .openOn(map);
+});
+
+fabTime.onclick = () => {
+  pickMode = !pickMode;
+  fabTime.style.background = pickMode ? '#ffd166' : '#fff';
+  setBanner(pickMode ? 'info' : '', pickMode ? '⏱ Tap anywhere on the map for a round-trip time estimate' : '');
+};
+
 /* ---------- record a custom trail ---------- */
 let recording = false, recWatchId = null, recPts = [], recDist = 0, recLine = null;
 const fabRec = document.getElementById('fab-record');

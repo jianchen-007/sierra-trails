@@ -1,7 +1,7 @@
 /* Sierra Camp Trails service worker — full offline support */
 'use strict';
 
-const SHELL_CACHE = 'sierra-shell-v16';
+const SHELL_CACHE = 'sierra-shell-v17';
 const TILE_CACHE = 'sierra-tiles-v1';
 
 const SHELL = [
@@ -14,6 +14,7 @@ const SHELL = [
   'data/trails.js',
   'data/tile-manifest.js',
   'data/photos.js',
+  'data/timefield.js',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/apple-touch-icon.png',
