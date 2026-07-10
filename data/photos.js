@@ -34,5 +34,11 @@ const PHOTOS = [
     cap: 'Talus crossing on the Lily Lake Trail below Angora ridge' },
   { f: 'IMG_1483', lat: 38.874472, lon: -120.078619, date: '2026-07-09',
     cap: 'Lily Lake Trail junction — ¼ mi to the Glen Alpine parking lot' },
+  { f: 'IMG_1485', lat: 38.887156, lon: -120.074482, date: '2026-07-10',
+    cap: 'Fallen Leaf Lake & Tahoe from the lower Mt. Tallac trail (position from photo time — camera GPS was stale)' },
+  { f: 'IMG_1486', lat: 38.888767, lon: -120.074714, date: '2026-07-10',
+    cap: 'Rocky gully above the Mt. Tallac trail' },
+  { f: 'IMG_1487', lat: 38.896992, lon: -120.074708, date: '2026-07-10',
+    cap: 'Fallen Leaf Lake panorama from the Mt. Tallac trail, mile 1' },
 ];
 const PHOTO_FILES = PHOTOS.flatMap(p => [`photos/thumb/${p.f}.jpg`, `photos/full/${p.f}.jpg`]);

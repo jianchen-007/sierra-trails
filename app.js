@@ -367,9 +367,19 @@ fabTime.onclick = () => {
 
 /* ---------- record a custom trail ---------- */
 let recording = false, recWatchId = null, recPts = [], recDist = 0, recLine = null;
+let recLastSave = 0;
 const fabRec = document.getElementById('fab-record');
 const REC_MIN_STEP_M = 5;      // drop jittery fixes closer than this
 const REC_MAX_ACC_M = 50;      // drop fixes with worse accuracy
+const REC_KEY = 'sierra-rec-inprogress';
+const REC_SAVE_MS = 15000;     // checkpoint the track to storage every 15 s
+
+function persistRecording() {
+  try {
+    localStorage.setItem(REC_KEY, JSON.stringify({ pts: recPts, dist: recDist, when: Date.now() }));
+    recLastSave = Date.now();
+  } catch (e) {}
+}
 
 function onRecFix(pos) {
   const { latitude: lat, longitude: lon, accuracy: acc } = pos.coords;
@@ -382,28 +392,57 @@ function onRecFix(pos) {
   }
   recPts.push(p);
   recLine.setLatLngs(recPts);
+  if (Date.now() - recLastSave > REC_SAVE_MS) persistRecording();
   setBanner('info', `⏺ Recording — ${(recDist / 1609.34).toFixed(2)} mi · ${recPts.length} pts · tap ⏺ to finish`);
 }
 
-async function startRecording() {
+async function startRecording(resume) {
   if (recording) return;
   if (!('geolocation' in navigator)) { setBanner('warn', 'No GPS on this device/browser.'); return; }
   if (tracking) stopTracking(); // recording and trail-following are exclusive
-  recording = true; recPts = []; recDist = 0;
+  recording = true;
+  if (!resume) { recPts = []; recDist = 0; }
+  recLastSave = 0; // checkpoint on the first fix
   fabRec.textContent = '⏹';
   fabRec.style.background = '#d62828';
-  recLine = L.polyline([], { color: '#d62828', weight: 4, dashArray: '2 8' }).addTo(map);
-  setBanner('info', '⏺ Recording — waiting for GPS…');
+  recLine = L.polyline(recPts, { color: '#d62828', weight: 4, dashArray: '2 8' }).addTo(map);
+  setBanner('info', resume
+    ? `⏺ Resumed recording — ${(recDist / 1609.34).toFixed(2)} mi so far`
+    : '⏺ Recording — waiting for GPS…');
   recWatchId = navigator.geolocation.watchPosition(
     pos => { onFix(pos); onRecFix(pos); }, onGpsError,
     { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
   try { wakeLock = wakeLock || await navigator.wakeLock?.request('screen'); } catch (e) {}
 }
 
+function saveRecordedTrail(pts, distM) {
+  const today = new Date().toISOString().slice(0, 10);
+  const name = prompt(`Save recorded trail (${(distM / 1609.34).toFixed(2)} mi)?\nGive it a name:`, `My trail ${today}`);
+  if (!name) { setBanner('info', 'Recording discarded.'); setTimeout(() => setBanner('', ''), 3000); return; }
+  const feature = {
+    type: 'Feature',
+    properties: {
+      id: 'custom-' + Date.now(),
+      name: name.trim(),
+      miles: Math.round(distM / 160.934) / 10,
+      color: '#d62828',
+      difficulty: 'Recorded',
+      desc: `Recorded on ${today}.`,
+      custom: true,
+    },
+    geometry: { type: 'LineString', coordinates: pts.map(p => [Math.round(p[1] * 1e6) / 1e6, Math.round(p[0] * 1e6) / 1e6]) },
+  };
+  const list = loadCustomTrails(); list.push(feature); saveCustomTrails(list);
+  TRAILS.features.push(feature);
+  addTrailUI(feature, true);
+  selectTrail(feature.properties.id);
+}
+
 function stopRecording() {
   recording = false;
   if (recWatchId !== null) navigator.geolocation.clearWatch(recWatchId);
   recWatchId = null;
+  localStorage.removeItem(REC_KEY);
   fabRec.textContent = '⏺';
   fabRec.style.background = '#fff';
   if (!tracking) { try { wakeLock?.release(); wakeLock = null; } catch (e) {} }
@@ -415,29 +454,29 @@ function stopRecording() {
     setTimeout(() => { if (!tracking && !recording) setBanner('', ''); }, 4000);
     return;
   }
-  const today = new Date().toISOString().slice(0, 10);
-  const name = prompt(`Save recorded trail (${(recDist / 1609.34).toFixed(2)} mi)?\nGive it a name:`, `My trail ${today}`);
-  if (!name) { setBanner('info', 'Recording discarded.'); setTimeout(() => setBanner('', ''), 3000); return; }
-  const feature = {
-    type: 'Feature',
-    properties: {
-      id: 'custom-' + Date.now(),
-      name: name.trim(),
-      miles: Math.round(recDist / 160.934) / 10,
-      color: '#d62828',
-      difficulty: 'Recorded',
-      desc: `Recorded on ${today}.`,
-      custom: true,
-    },
-    geometry: { type: 'LineString', coordinates: recPts.map(p => [Math.round(p[1] * 1e6) / 1e6, Math.round(p[0] * 1e6) / 1e6]) },
-  };
-  const list = loadCustomTrails(); list.push(feature); saveCustomTrails(list);
-  TRAILS.features.push(feature);
-  addTrailUI(feature, true);
-  selectTrail(feature.properties.id);
+  saveRecordedTrail(recPts, recDist);
 }
 
-fabRec.onclick = () => recording ? stopRecording() : startRecording();
+fabRec.onclick = () => recording ? stopRecording() : startRecording(false);
+
+// crash recovery: if the app was killed mid-recording, the last checkpoint
+// (max 15 s old) is still in storage - offer to resume or save it
+(function recoverRecording() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(REC_KEY)); } catch (e) {}
+  if (!saved || !saved.pts || saved.pts.length < 2) { localStorage.removeItem(REC_KEY); return; }
+  const mi = (saved.dist / 1609.34).toFixed(2);
+  const ago = Math.round((Date.now() - saved.when) / 60000);
+  if (confirm(`Found an unsaved track recording (${mi} mi, from ${ago} min ago) — the app was closed while recording.\n\nResume recording it?`)) {
+    recPts = saved.pts; recDist = saved.dist;
+    startRecording(true);
+  } else if (confirm('Save it as a trail instead? (Cancel discards it)')) {
+    localStorage.removeItem(REC_KEY);
+    saveRecordedTrail(saved.pts, saved.dist);
+  } else {
+    localStorage.removeItem(REC_KEY);
+  }
+})();
 
 /* ---------- GPX export of the selected trail ---------- */
 document.getElementById('btn-gpx').onclick = () => {
