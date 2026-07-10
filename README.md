@@ -28,6 +28,11 @@ All routes start at the camp itself (38.88325, -120.07233).
   accuracy, 3 consecutive fixes to avoid false alarms) you get a flashing red
   banner with the compass direction back to the trail, vibration (Android) and
   a beep (all platforms). Clears with a confirmation chirp when you're back on.
+- **Record your own trails** — tap ⏺ to log your path as you walk (5 m
+  breadcrumb spacing, bad fixes filtered). Stop, name it, and it's saved on the
+  phone (localStorage), drawn dashed red, and works exactly like a built-in
+  trail: selectable, trackable, off-course warnings included. Delete via the ✕
+  on its card. Any trail (built-in or recorded) exports as GPX with one tap.
 
 ## Install on a phone
 

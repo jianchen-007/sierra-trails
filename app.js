@@ -29,31 +29,64 @@ L.marker(CAMP, {
 const layers = {};   // id -> polyline
 let selected = null; // feature
 
-TRAILS.features.forEach(f => {
-  const line = L.geoJSON(f, {
-    style: { color: f.properties.color, weight: 4, opacity: 0.85 },
-  }).addTo(map);
-  line.on('click', () => selectTrail(f.properties.id));
-  layers[f.properties.id] = line;
-});
-
-// initial view: the whole trail network
-const allBounds = L.latLngBounds([]);
-Object.values(layers).forEach(l => allBounds.extend(l.getBounds()));
-map.fitBounds(allBounds, { padding: [20, 20] });
-
 const scroll = document.getElementById('trail-scroll');
-TRAILS.features.forEach(f => {
+
+function addTrailUI(f, custom) {
   const p = f.properties;
+  const line = L.geoJSON(f, {
+    style: { color: p.color, weight: 4, opacity: 0.85, dashArray: custom ? '6 6' : null },
+  }).addTo(map);
+  line.on('click', () => selectTrail(p.id));
+  layers[p.id] = line;
+
   const card = document.createElement('div');
   card.className = 'trail-card';
   card.id = 'card-' + p.id;
   card.innerHTML = `<span class="dot" style="background:${p.color}"></span>` +
     `<span style="font-size:11px;opacity:.8">${p.miles} mi · ${p.difficulty}</span>` +
-    `<h3>${p.name}</h3>`;
+    `<h3>${p.name}</h3>` +
+    (custom ? `<button class="card-del" title="Delete this trail">✕</button>` : '');
   card.onclick = () => selectTrail(p.id);
+  if (custom) {
+    card.querySelector('.card-del').onclick = ev => {
+      ev.stopPropagation();
+      if (confirm(`Delete "${p.name}"?`)) deleteCustomTrail(p.id);
+    };
+  }
   scroll.appendChild(card);
-});
+}
+
+TRAILS.features.forEach(f => addTrailUI(f, false));
+
+/* ---------- custom (recorded) trails ---------- */
+const CUSTOM_KEY = 'sierra-custom-trails';
+function loadCustomTrails() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_KEY)) || []; }
+  catch (e) { return []; }
+}
+function saveCustomTrails(list) {
+  localStorage.setItem(CUSTOM_KEY, JSON.stringify(list));
+}
+loadCustomTrails().forEach(f => { TRAILS.features.push(f); addTrailUI(f, true); });
+
+function deleteCustomTrail(id) {
+  saveCustomTrails(loadCustomTrails().filter(f => f.properties.id !== id));
+  TRAILS.features = TRAILS.features.filter(f => f.properties.id !== id);
+  map.removeLayer(layers[id]);
+  delete layers[id];
+  document.getElementById('card-' + id).remove();
+  if (selected && selected.properties.id === id) {
+    if (tracking) stopTracking();
+    selected = null; routePts = null;
+    document.getElementById('detail').classList.remove('on');
+    Object.values(layers).forEach(l => l.setStyle({ weight: 4, opacity: 0.85 }));
+  }
+}
+
+// initial view: the whole trail network
+const allBounds = L.latLngBounds([]);
+Object.values(layers).forEach(l => allBounds.extend(l.getBounds()));
+map.fitBounds(allBounds, { padding: [20, 20] });
 
 function selectTrail(id) {
   selected = TRAILS.features.find(f => f.properties.id === id);
@@ -247,9 +280,106 @@ document.getElementById('fab-locate').onclick = () => {
     onGpsError, { enableHighAccuracy: true, timeout: 15000 });
 };
 
-// debug/testing hook: feed a fake GPS fix
-window.__simulatePosition = (lat, lon, accuracy = 10) =>
+/* ---------- record a custom trail ---------- */
+let recording = false, recWatchId = null, recPts = [], recDist = 0, recLine = null;
+const fabRec = document.getElementById('fab-record');
+const REC_MIN_STEP_M = 5;      // drop jittery fixes closer than this
+const REC_MAX_ACC_M = 50;      // drop fixes with worse accuracy
+
+function onRecFix(pos) {
+  const { latitude: lat, longitude: lon, accuracy: acc } = pos.coords;
+  if (acc > REC_MAX_ACC_M) return;
+  const p = [lat, lon];
+  if (recPts.length) {
+    const step = meters(recPts[recPts.length - 1], p);
+    if (step < REC_MIN_STEP_M) return;
+    recDist += step;
+  }
+  recPts.push(p);
+  recLine.setLatLngs(recPts);
+  setBanner('info', `⏺ Recording — ${(recDist / 1609.34).toFixed(2)} mi · ${recPts.length} pts · tap ⏺ to finish`);
+}
+
+async function startRecording() {
+  if (recording) return;
+  if (!('geolocation' in navigator)) { setBanner('warn', 'No GPS on this device/browser.'); return; }
+  if (tracking) stopTracking(); // recording and trail-following are exclusive
+  recording = true; recPts = []; recDist = 0;
+  fabRec.textContent = '⏹';
+  fabRec.style.background = '#d62828';
+  recLine = L.polyline([], { color: '#d62828', weight: 4, dashArray: '2 8' }).addTo(map);
+  setBanner('info', '⏺ Recording — waiting for GPS…');
+  recWatchId = navigator.geolocation.watchPosition(
+    pos => { onFix(pos); onRecFix(pos); }, onGpsError,
+    { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
+  try { wakeLock = wakeLock || await navigator.wakeLock?.request('screen'); } catch (e) {}
+}
+
+function stopRecording() {
+  recording = false;
+  if (recWatchId !== null) navigator.geolocation.clearWatch(recWatchId);
+  recWatchId = null;
+  fabRec.textContent = '⏺';
+  fabRec.style.background = '#fff';
+  if (!tracking) { try { wakeLock?.release(); wakeLock = null; } catch (e) {} }
+  map.removeLayer(recLine); recLine = null;
+  setBanner('', '');
+
+  if (recPts.length < 2 || recDist < 50) {
+    setBanner('info', 'Recording too short to save — discarded.');
+    setTimeout(() => { if (!tracking && !recording) setBanner('', ''); }, 4000);
+    return;
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  const name = prompt(`Save recorded trail (${(recDist / 1609.34).toFixed(2)} mi)?\nGive it a name:`, `My trail ${today}`);
+  if (!name) { setBanner('info', 'Recording discarded.'); setTimeout(() => setBanner('', ''), 3000); return; }
+  const feature = {
+    type: 'Feature',
+    properties: {
+      id: 'custom-' + Date.now(),
+      name: name.trim(),
+      miles: Math.round(recDist / 160.934) / 10,
+      color: '#d62828',
+      difficulty: 'Recorded',
+      desc: `Recorded on ${today}.`,
+      custom: true,
+    },
+    geometry: { type: 'LineString', coordinates: recPts.map(p => [Math.round(p[1] * 1e6) / 1e6, Math.round(p[0] * 1e6) / 1e6]) },
+  };
+  const list = loadCustomTrails(); list.push(feature); saveCustomTrails(list);
+  TRAILS.features.push(feature);
+  addTrailUI(feature, true);
+  selectTrail(feature.properties.id);
+}
+
+fabRec.onclick = () => recording ? stopRecording() : startRecording();
+
+/* ---------- GPX export of the selected trail ---------- */
+document.getElementById('btn-gpx').onclick = () => {
+  if (!selected) return;
+  const p = selected.properties;
+  const pts = selected.geometry.coordinates
+    .map(c => `      <trkpt lat="${c[1]}" lon="${c[0]}"></trkpt>`).join('\n');
+  const gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Sierra Camp Trails" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>${p.name.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</name>
+    <trkseg>
+${pts}
+    </trkseg>
+  </trk>
+</gpx>`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([gpx], { type: 'application/gpx+xml' }));
+  a.download = p.id + '.gpx';
+  document.body.appendChild(a); a.click(); a.remove();
+};
+
+// debug/testing hook: feed a fake GPS fix (drives both tracking and recording)
+window.__simulatePosition = (lat, lon, accuracy = 10) => {
   onFix({ coords: { latitude: lat, longitude: lon, accuracy } });
+  if (recording) onRecFix({ coords: { latitude: lat, longitude: lon, accuracy } });
+};
 
 /* ---------- offline: service worker + tile pre-download ---------- */
 const netPill = document.getElementById('net-pill');

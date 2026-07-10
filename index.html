@@ -68,6 +68,12 @@ body {
 .trail-card {
   flex: 0 0 auto; width: 168px; border-radius: 12px; padding: 10px;
   background: rgba(255,255,255,.09); border: 2px solid transparent; cursor: pointer;
+  position: relative;
+}
+.card-del {
+  position: absolute; top: 6px; right: 6px; width: 22px; height: 22px;
+  border: 0; border-radius: 50%; background: rgba(255,255,255,.2); color: #fff;
+  font-size: 12px; line-height: 22px; padding: 0; cursor: pointer;
 }
 .trail-card.sel { border-color: var(--accent); background: rgba(255,255,255,.16); }
 .trail-card .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
@@ -121,12 +127,14 @@ button.big.sec { background: rgba(255,255,255,.15); color: #fff; }
     <div class="btnrow">
       <button class="big" id="btn-track">▶ Start hike</button>
       <button class="big sec" id="btn-fit">Zoom to trail</button>
+      <button class="big sec" id="btn-gpx" style="flex:0 0 auto; padding:12px 14px" title="Export GPX">GPX</button>
     </div>
   </div>
 </div>
 <div id="fabs" style="bottom:auto; top:calc(var(--sat) + 56px);">
   <button class="fab" id="fab-locate" title="My location">📍</button>
   <button class="fab" id="fab-dl" title="Download offline maps">⬇️</button>
+  <button class="fab" id="fab-record" title="Record a new trail">⏺</button>
   <button class="fab" id="fab-recenter" title="Re-center on me" style="display:none">🎯</button>
 </div>
 <div id="ios-tip">
